@@ -57,10 +57,7 @@
 #define HCI_EVENT_HARDWARE_ERROR_EVENT                  (0x10)
 
 #define SCSC_BT_CONF      "bt.hcf"
-#ifdef CONFIG_SCSC_BT_BLUEZ
-#define SCSC_BT_ADDR      "/csa/bluetooth/.bd_addr"
-#define SCSC_BT_ADDR_LEN  (3)
-#elif defined CONFIG_SCSC_BT_ADDRESS_IN_FILE
+#ifdef CONFIG_SCSC_BT_ADDRESS_IN_FILE
 #define SCSC_BT_ADDR      CONFIG_SCSC_BT_ADDRESS_FILENAME
 #define SCSC_BT_ADDR_LEN  (6)
 #endif
