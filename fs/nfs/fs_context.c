@@ -30,7 +30,7 @@
 
 enum {
 	/* Mount options that take no arguments */
-	Opt_soft, Opt_softerr, Opt_hard,
+	Opt_soft, Opt_hard,
 	Opt_posix, Opt_noposix,
 	Opt_cto, Opt_nocto,
 	Opt_ac, Opt_noac,
@@ -78,7 +78,6 @@ static const match_table_t nfs_mount_option_tokens = {
 	{ Opt_sloppy, "sloppy" },
 
 	{ Opt_soft, "soft" },
-	{ Opt_softerr, "softerr" },
 	{ Opt_hard, "hard" },
 	{ Opt_deprecated, "intr" },
 	{ Opt_deprecated, "nointr" },
@@ -537,14 +536,9 @@ int nfs_parse_mount_options(char *raw, struct nfs_parsed_mount_data *mnt)
 		 */
 		case Opt_soft:
 			mnt->flags |= NFS_MOUNT_SOFT;
-			mnt->flags &= ~NFS_MOUNT_SOFTERR;
-			break;
-		case Opt_softerr:
-			mnt->flags |= NFS_MOUNT_SOFTERR;
-			mnt->flags &= ~NFS_MOUNT_SOFT;
 			break;
 		case Opt_hard:
-			mnt->flags &= ~(NFS_MOUNT_SOFT|NFS_MOUNT_SOFTERR);
+			mnt->flags &= ~NFS_MOUNT_SOFT;
 			break;
 		case Opt_posix:
 			mnt->flags |= NFS_MOUNT_POSIX;
