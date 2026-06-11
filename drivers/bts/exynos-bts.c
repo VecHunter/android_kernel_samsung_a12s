@@ -56,8 +56,6 @@ static void bts_calc_bw(void)
 	unsigned int total_write = 0;
 	unsigned int mif_freq, int_freq = 0;
 
-	mutex_lock(&btsdev->mutex_lock);
-
 	btsdev->peak_bw = 0;
 	btsdev->total_bw = 0;
 
@@ -85,8 +83,6 @@ static void bts_calc_bw(void)
 	pm_qos_update_request(&exynos_mif_qos, mif_freq);
 	if (!int_request_disable)
 		pm_qos_update_request(&exynos_int_qos, int_freq);
-
-	mutex_unlock(&btsdev->mutex_lock);
 }
 
 static void bts_set(unsigned int scen, unsigned int index)
@@ -192,7 +188,7 @@ int bts_update_bw(unsigned int index, struct bts_bw bw)
 		return -EINVAL;
 	}
 
-	spin_lock(&btsdev->lock);
+	rt_mutex_lock(&btsdev->mutex_lock);
 
 	BTSDBG_LOG(btsdev->dev, "%s: %s(%u), R: %.8u W: %.8u P: %.8u\n", __func__,
 			btsdev->bts_bw[index].name, index, bw.read, bw.write, bw.peak);
@@ -200,9 +196,9 @@ int bts_update_bw(unsigned int index, struct bts_bw bw)
 	btsdev->bts_bw[index].peak = bw.peak;
 	btsdev->bts_bw[index].read = bw.read;
 	btsdev->bts_bw[index].write = bw.write;
-	spin_unlock(&btsdev->lock);
 
 	bts_calc_bw();
+	rt_mutex_unlock(&btsdev->mutex_lock);
 
 	return 0;
 }
@@ -2531,7 +2527,7 @@ static int bts_probe(struct platform_device *pdev)
 			return ret;
 		}
 		spin_lock_init(&btsdev->lock);
-		mutex_init(&btsdev->mutex_lock);
+		rt_mutex_init(&btsdev->mutex_lock);
 		INIT_LIST_HEAD(&btsdev->scen_node);
 
 		ret = bts_initialize(btsdev);
@@ -2550,8 +2546,7 @@ static int bts_probe(struct platform_device *pdev)
 	if (!int_request_disable)
 		pm_qos_add_request(&exynos_int_qos, PM_QOS_DEVICE_THROUGHPUT, 0);
 #if defined(CONFIG_DEBUG_FS)
-	ret = exynos_bts_debugfs_init();
-	if (ret)
+	if (exynos_bts_debugfs_init())
 		dev_err(btsdev->dev, "exynos_bts_debugfs_init failed\n");
 #endif
 	register_syscore_ops(&exynos_bts_syscore_ops);
