@@ -1342,7 +1342,8 @@ parse_ntb:
 	do {
 		index = index2;
 		dg_len = dg_len2;
-		if (dg_len < 14 + crc_len) { /* ethernet header + crc */
+		if ((dg_len < 14 + crc_len) ||
+				(dg_len > frame_max)) { /* ethernet header + crc or larger than max frame size */
 			INFO(port->func.config->cdev, "Bad dgram length: %x\n",
 			     dg_len);
 			goto err;
@@ -1896,9 +1897,6 @@ To prevent crash in case we are not bound.
 static struct usb_function_instance *ncm_alloc_inst(void)
 {
 	struct f_ncm_opts *opts;
-	struct usb_os_desc *descs[1];
-	char *names[1];
-	struct config_group *ncm_interf_group;
 
 	opts = kzalloc(sizeof(*opts), GFP_KERNEL);
 	if (!opts)
@@ -1961,6 +1959,7 @@ static struct usb_function *ncm_alloc(struct usb_function_instance *fi)
 {
 	struct f_ncm		*ncm;
 	struct f_ncm_opts	*opts;
+	int status;
 
 	/* allocate and initialize one new instance */
 	ncm = kzalloc(sizeof(*ncm), GFP_KERNEL);
